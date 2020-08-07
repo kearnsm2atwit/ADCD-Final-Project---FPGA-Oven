@@ -1,0 +1,7 @@
+
+State Machine - |finalproject|current_state
+Name current_state.A11 current_state.A10 current_state.A01 current_state.A00 
+current_state.A00 0 0 0 0 
+current_state.A01 0 0 1 1 
+current_state.A10 0 1 0 1 
+current_state.A11 1 0 0 1 
