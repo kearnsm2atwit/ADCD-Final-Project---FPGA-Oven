@@ -14,11 +14,9 @@ module final (input clk, A, B, C, D, output Z, output [7:0] H3, H2, H1, H0, G2, 
 	
 	reg [16:0] clock = 0;								// Need register for clock to display time. Time will be an integer of seconds
 	reg [9:0] temp = 0;									// Need register for clock to display temp
-	reg targetTemp = 357;
+	reg [10:0]targetTemp = 357;
 	reg loopCount = 0;
 	reg [21:0] store = 0;
-	reg i = 0;
-
 
 	// Put each register into the seven segment module
 	
@@ -48,8 +46,8 @@ module final (input clk, A, B, C, D, output Z, output [7:0] H3, H2, H1, H0, G2, 
 		if (A == 0) begin
 			//current_state <= A10;
 			store = 0;
-			store = targetTemp;
-			for (i = 0; i <= 11; i = i + 1) begin
+			store[10:0] = targetTemp[10:0];
+			repeat (10) begin
 				if (store[13:10] >= 5) begin
 					store[13:10] = store[13:10] + 3;
 				end
