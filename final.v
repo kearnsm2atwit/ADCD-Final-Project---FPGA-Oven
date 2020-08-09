@@ -9,13 +9,15 @@ module final (input clk, A, B, C, D, output Z, output [7:0] H3, H2, H1, H0, G2, 
 	reg [27:0] count = 0;						// Store count value
 	reg new_clk = 0;										// Clock to be used
 	
-	reg [4:0] Q3, Q2, Q1, Q0 = 0;
+	reg [3:0] Q3, Q2, Q1, Q0 = 0;
 //	reg [4:0] G3, G2, G1, G0 = 0;
 	
 	reg [16:0] clock = 0;								// Need register for clock to display time. Time will be an integer of seconds
 	reg [9:0] temp = 0;									// Need register for clock to display temp
-	reg targetTemp = 350;
+	reg targetTemp = 357;
 	reg loopCount = 0;
+	reg [21:0] store = 0;
+	reg i = 0;
 
 
 	// Put each register into the seven segment module
@@ -44,12 +46,26 @@ module final (input clk, A, B, C, D, output Z, output [7:0] H3, H2, H1, H0, G2, 
 	// Always block to control FSM based on clock cycle
 	always @ (posedge new_clk) begin
 		if (A == 0) begin
-			current_state <= A10;
-			Q0 = targetTemp % 10;				//1s place
-			Q1 = (targetTemp % 100) / 10;		//10s place
-			Q2 = targetTemp / 100;				//100s place
+			//current_state <= A10;
+			store = 0;
+			store = targetTemp;
+			for (i = 0; i <= 11; i = i + 1) begin
+				if (store[13:10] >= 5) begin
+					store[13:10] = store[13:10] + 3;
+				end
+				if (store[17:14] >= 5) begin
+					store[17:14] = store[17:14] + 3;
+				end
+				if (store[21:18] >= 5) begin
+					store[21:18] = store[21:18] + 3;
+				end
+				store = store << 1;
+			end
+			Q0 = store[13:10];
+			Q1 = store[17:14];
+			Q2 = store[21:18];
 		end
-		else begin
+/*		else begin
 			current_state <= next_state;
 			if (A == 1) begin
 				Q0 = Q0 + 1;
@@ -71,14 +87,14 @@ module final (input clk, A, B, C, D, output Z, output [7:0] H3, H2, H1, H0, G2, 
 					end
 				end
 			end
-		end
+		end */
 	end
 
 	
 	
 	// Need to find next state
 	
-	always @ (*) begin
+/*	always @ (*) begin
 		next_state = current_state;
 		if (B == 0) begin
 			targetTemp = targetTemp + 1;
@@ -124,7 +140,7 @@ module final (input clk, A, B, C, D, output Z, output [7:0] H3, H2, H1, H0, G2, 
 				end
 			endcase	
 		end	
-	end	
+	end	*/	
 	
 	
 endmodule
