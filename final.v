@@ -14,7 +14,7 @@ module final (input clk, A, B, C, D, output Z, output [7:0] H3, H2, H1, H0, G2, 
 	
 	reg [16:0] clock = 0;								// Need register for clock to display time. Time will be an integer of seconds
 	reg [9:0] temp = 0;									// Need register for clock to display temp
-	reg [9:0] targetTemp = 350;
+	reg targetTemp = 350;
 	reg loopCount = 0;
 
 
@@ -27,7 +27,6 @@ module final (input clk, A, B, C, D, output Z, output [7:0] H3, H2, H1, H0, G2, 
 		end
 		else begin
 			count <= 0;
-			
 			new_clk <= ~new_clk;
 		end
 	end
@@ -36,24 +35,19 @@ module final (input clk, A, B, C, D, output Z, output [7:0] H3, H2, H1, H0, G2, 
 	reg [1:0] current_state, next_state;					
 	localparam A00 = 0, A01 = 1, A10 = 2, A11 = 3;
 	
-
-
-	//tempConv t1(targetTemp, G0, G1, G2);
 	sevenseg s3(Q3, H3);
 	sevenseg s2(Q2, H2);
 	sevenseg s1(Q1, H1);
 	sevenseg s0(Q0, H0);
 	
-	
 
-	
 	// Always block to control FSM based on clock cycle
 	always @ (posedge new_clk) begin
 		if (A == 0) begin
-		Q0 = targetTemp % 10;
-		Q1 = (targetTemp % 100) / 10;
-		Q2 = targetTemp / 100;
-			current_state <= A00;
+			current_state <= A10;
+			Q0 = targetTemp % 10;				//1s place
+			Q1 = (targetTemp % 100) / 10;		//10s place
+			Q2 = targetTemp / 100;				//100s place
 		end
 		else begin
 			current_state <= next_state;
