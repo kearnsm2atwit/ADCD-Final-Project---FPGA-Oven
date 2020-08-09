@@ -38,7 +38,7 @@ module final (input clk, A, B, C, D, output Z, output [7:0] H3, H2, H1, H0, G2, 
 	
 
 
-	tempConv t1(targetTemp, G0, G1, G2);
+	//tempConv t1(targetTemp, G0, G1, G2);
 	sevenseg s3(Q3, H3);
 	sevenseg s2(Q2, H2);
 	sevenseg s1(Q1, H1);
@@ -50,9 +50,9 @@ module final (input clk, A, B, C, D, output Z, output [7:0] H3, H2, H1, H0, G2, 
 	// Always block to control FSM based on clock cycle
 	always @ (posedge new_clk) begin
 		if (A == 0) begin
-			Q0 = G0;
-			Q1 = G1;
-			Q2 = G2;
+		Q0 = targetTemp % 10;
+		Q1 = (targetTemp % 100) / 10;
+		Q2 = targetTemp / 100;
 			current_state <= A00;
 		end
 		else begin
@@ -84,15 +84,17 @@ module final (input clk, A, B, C, D, output Z, output [7:0] H3, H2, H1, H0, G2, 
 	
 	// Need to find next state
 	
-/*	always @ (*) begin
+	always @ (*) begin
+		next_state = current_state;
 		if (B == 0) begin
 			targetTemp = targetTemp + 1;
+		end
+		else begin 
+			targetTemp = targetTemp;
 		end
 		if (C == 0) begin
 			targetTemp = targetTemp - 1;
 		end
-		next_state = current_state;
-
 		else begin
 			case (current_state)
 				A00: begin
@@ -128,7 +130,7 @@ module final (input clk, A, B, C, D, output Z, output [7:0] H3, H2, H1, H0, G2, 
 				end
 			endcase	
 		end	
-	end	*/
+	end	
 	
 	
 endmodule
