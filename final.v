@@ -1,8 +1,9 @@
-module final (input clk, A, B, C, D, output Z, output [7:0] H3, H2, H1, H0);
+module final (input clk, A, B, C, D, E, output Z, output [7:0] H3, H2, H1, H0);
 	//A is for turning the oven on and off(display time or turn the oven on)
 	//B raises temp
 	//C lowers temp
 	//D activates the oven with its appropriate temp
+	//E toggles setting the cook time
 
 
 	parameter MAX_COUNT = 50000000;					// 1 second is 50 million clock cycles @ 50 MHz
@@ -17,11 +18,6 @@ module final (input clk, A, B, C, D, output Z, output [7:0] H3, H2, H1, H0);
 	reg loopCount = 0;
 	reg [21:0] store = 0;
 	reg i = 0;
-	reg changeB = 0;
-	reg lastB = 0;
-	reg changeC = 0;
-	reg lastC = 0;
-	reg reset = 0;
 	// Put each register into the seven segment module
 	
 	
@@ -43,23 +39,17 @@ module final (input clk, A, B, C, D, output Z, output [7:0] H3, H2, H1, H0);
 	sevenseg s1(Q1, H1);
 	sevenseg s0(Q0, H0);
 	
-	always @ (negedge B) begin
-		changeB = changeB + 1;
-	end
-	always @ (negedge C) begin
-		changeC = changeC + 1;
-	end
-		
 
 	// Always block to control FSM based on clock cycle
+
 	always @ (posedge new_clk) begin
+	if (A == 0) begin
 		if (B == 0) begin
 			targetTemp = targetTemp + 1;
 		end
 		if (C == 0) begin
 			targetTemp = targetTemp - 1;
 		end
-		if (A == 0) begin
 			//current_state <= A10;
 			store = 0;
 			store = targetTemp;
@@ -112,48 +102,6 @@ module final (input clk, A, B, C, D, output Z, output [7:0] H3, H2, H1, H0);
 			end
 		end 
 	end
-	
-	
-	// Need to find next state
-
-
-/*	always @ (*) begin
-
-		case (current_state)
-			A00: begin
-				if (temp < targetTemp - 2) begin
-					temp = temp + 2;
-					next_state = A00;
-				end
-				else begin
-					temp = temp + 2;
-					next_state = A01;
-				end
-			end
-			A01: begin
-				if (loopCount == 1) begin
-					temp = temp - 1;
-					loopCount = 0;
-					next_state = A01;
-				end
-				if (temp > targetTemp - 2) begin
-					loopCount = 1;
-					next_state = A01;
-				end
-				else begin
-					next_state = A00;
-					loopCount = 0;
-				end
-			end
-			A10: begin
-				// In State 10, Oven is ON, preheating to the desired temp
-			end
-			A11: begin
-				// In State 11, Oven is ON, needs to bake for desired time
-			end
-		endcase
-	current_state = next_state;	
-	end	*/	
 	
 endmodule
 
