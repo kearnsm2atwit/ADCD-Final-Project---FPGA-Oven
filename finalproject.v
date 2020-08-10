@@ -1,26 +1,29 @@
-module finalproject (input clk, A, B, C, D, output Z, output [7:0] H5, H4, H3, H2, H1, H0);
+module finalproject (input clk, A, B, C, D, E, output Z, output [7:0] H3, H2, H1, H0);
+	//A is for turning the oven on and off(display time or turn the oven on)
+	//B raises temp
+	//C lowers temp
+	//D activates the oven with its appropriate temp
+	//E toggles setting the cook time
 
 
-
-	parameter MAX_COUNT = 50000000;					// 1 second is 50 million clock cycles @ 50 MHz
-	reg [27:0] count = 0;						// Store count value
+	parameter MAX_COUNT = 25000000;					// 1 second is 50 million clock cycles @ 50 MHz
+	reg [27:0] count = 0;								// Store count value
 	reg new_clk = 0;										// Clock to be used
 	
-	reg [7:0] Q5, Q4, Q3, Q2, Q1, Q0 = 1;
 	
-	reg [16:0] clock = 0;								// Need register for clock to display time. Time will be an integer of seconds
-	reg [8:0] temp = 0;									// Need register for clock to display temp
-	
-	
-	// Put each register into the seven segment module
-	sevenseg s5 (Q5, H5);
-	sevenseg s4 (Q4, H4);
-	sevenseg s3 (Q3, H3);
-	sevenseg s2 (Q2, H2);
-	sevenseg s1 (Q1, H1);
-	sevenseg s0 (Q0, H0);
+	reg [3:0] Q3, Q2, Q1, Q0 = 0;
+	reg [3:0] D3, D2, D1, D0 = 0;
 	
 	
+	
+	reg [10:0] temp = 0;									// Need register for clock to display temp
+	reg [10:0] targetTemp = 357;
+	reg [16:0] bakeTime = 0;
+	
+	sevenseg s3(Q3, H3);
+	sevenseg s2(Q2, H2);
+	sevenseg s1(Q1, H1);
+	sevenseg s0(Q0, H0);
 	
 	
 	always @ (posedge clk) begin
@@ -32,53 +35,56 @@ module finalproject (input clk, A, B, C, D, output Z, output [7:0] H5, H4, H3, H
 			new_clk <= ~new_clk;
 		end
 	end
-	
-	
-	reg [1:0] current_state, next_state;					
-	localparam A00 = 0, A01 = 1, A10 = 2, A11 = 3;
-	
-	
+
 	// Always block to control FSM based on clock cycle
-	always @ (posedge new_clk) 
-		begin
-			if (A == 0) begin
-				current_state <= A00;
-			end
-			else begin
-				current_state <= next_state;
+
+	always @ (posedge new_clk) begin
+	
+		D0 = D0 + 1;
+		if (D0 == 10) begin
+			D0 = 0;
+			D1 = D1 + 1;
+			if (D1 == 6) begin
+				D1 = 0;
+				D0 = 0;
+				D2 = D2 + 1;
+				if (D2 == 10) begin
+					D2 = 0;
+					D3 = D3 + 1;
+					if (D3 == 6) begin
+						D3 = 0;
+						D2 = 0;
+					end
+				end
 			end
 		end
-
+			
+			
+		// If oven is ON and need to set desired temp
+		if (A == 1 && B == 0 && C == 0) begin
+		
+			Q0 = (targetTemp % 10);
+			Q1 = (targetTemp % 100) / 10;
+			Q2 = (targetTemp / 100);
+		
+		end
+		
+		// If oven is ON and need to set desired time
+		if (A == 1 && B == 1 && C == 0) begin
+		
+		end
+		
+		// If oven is ON and need to be baking
+		if (A == 1 && B == 1 && C == 1) begin
+		
+		end
 	
-	
-	// Need to find next state
-	
-	always @ (*) begin
-		next_state = current_state;
-		case (current_state)
-			A00: begin
-				// Oven is OFF
-				// Need to output 
-			end
-			A01: begin
-				// In State 01, Oven is ON, user needs to input temp and time
-			end
-			A10: begin
-				// In State 10, Oven is ON, preheating to the desired temp
-			end
-			A11: begin
-				// In State 11, Oven is ON, needs to bake for desired time
-			end
-		endcase
+		// If oven is OFF
+		if (A == 0) begin
+			Q0 = D0;
+			Q1 = D1;
+			Q2 = D2;
+			Q3 = D3;
+		end
 	end
-	
-	
 endmodule
-
-
-
-
-
-
-
-	
