@@ -53,13 +53,11 @@ module final (input clk, A, B, C, D, output Z, output [7:0] H3, H2, H1, H0);
 
 	// Always block to control FSM based on clock cycle
 	always @ (posedge new_clk) begin
-		if (changeB != lastB) begin
-			targetTemp = targetTemp + (changeB - lastB);
-			lastB = changeB;
+		if (B == 0) begin
+			targetTemp = targetTemp + 1;
 		end
-		if (changeC != lastC) begin
-			targetTemp = targetTemp + (lastC - changeC);
-			lastC = changeC;
+		if (C == 0) begin
+			targetTemp = targetTemp - 1;
 		end
 		if (A == 0) begin
 			//current_state <= A10;
@@ -82,6 +80,7 @@ module final (input clk, A, B, C, D, output Z, output [7:0] H3, H2, H1, H0);
 			Q2 = store[21:18];
 			Q3 = 0;
 			i = 1;
+			//targetTemp = targetTemp + 1;
 		end
 		else begin
 			if (i == 1) begin
