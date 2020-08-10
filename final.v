@@ -1,4 +1,4 @@
-module final (input clk, A, B, C, D, E, output Z, output [7:0] H3, H2, H1, H0);
+module final (input clk, A, B, C, D, E, output reg X, Y, Z, output [7:0] H3, H2, H1, H0);
 	//A is for turning the oven on and off(display time or turn the oven on)
 	//B raises temp
 	//C lowers temp
@@ -18,6 +18,8 @@ module final (input clk, A, B, C, D, E, output Z, output [7:0] H3, H2, H1, H0);
 	reg loopCount = 0;
 	reg [21:0] store = 0;
 	reg i = 0;
+	reg [16:0] bakeTime = 0;
+	reg ready = 0;
 	// Put each register into the seven segment module
 	
 	
@@ -43,36 +45,72 @@ module final (input clk, A, B, C, D, E, output Z, output [7:0] H3, H2, H1, H0);
 	// Always block to control FSM based on clock cycle
 
 	always @ (posedge new_clk) begin
-	if (A == 0) begin
-		if (B == 0) begin
-			targetTemp = targetTemp + 1;
-		end
-		if (C == 0) begin
-			targetTemp = targetTemp - 1;
-		end
-			//current_state <= A10;
-			store = 0;
-			store = targetTemp;
-			repeat (10) begin
-				if (store[13:10] >= 5) begin
-					store[13:10] = store[13:10] + 3;
+		if (A == 1) begin
+			if((D == 0) & (E == 0)) begin
+				if (B == 0) begin
+					targetTemp = targetTemp + 1;
 				end
-				if (store[17:14] >= 5) begin
-					store[17:14] = store[17:14] + 3;
+				if (C == 0) begin
+					targetTemp = targetTemp - 1;
 				end
-				if (store[21:18] >= 5) begin
-					store[21:18] = store[21:18] + 3;
-				end
-				store = store << 1;
 			end
+			
+			
+			if ((D == 1) & (E == 0)) begin	//turning on heating element
+				if (B == 0) begin
+					bakeTime = bakeTime 	+ 15;
+				end
+				if (C == 0) begin
+					bakeTime = bakeTime - 15;	//need to make this printable to the 7 segment
+				end	
+			end
+			
+			
+			if ((D == 1) & (E == 1)) begin	//set cooking time in here
+				if (B == 0) begin
+					bakeTime = bakeTime + 15;
+				end
+				if (C == 0) begin
+					bakeTime = bakeTime - 15;	//need to make this printable to the 7 segment
+				end
+				if (ready == 1) begin
+					X = 1;		//x lit means the food is done
+				end
+				else begin
+					X = 0;
+				end
+					
+			end	//ending d=1 and e=0
+		
+		
+		
+		
+		
+		
+		
+			
+				//current_state <= A10;
+				store = 0;
+				store = targetTemp;
+				repeat (10) begin
+					if (store[13:10] >= 5) begin
+						store[13:10] = store[13:10] + 3;
+					end
+					if (store[17:14] >= 5) begin
+						store[17:14] = store[17:14] + 3;
+					end
+					if (store[21:18] >= 5) begin
+						store[21:18] = store[21:18] + 3;
+					end
+					store = store << 1;
+				end
 			Q0 = store[13:10];
 			Q1 = store[17:14];
 			Q2 = store[21:18];
 			Q3 = 0;
 			i = 1;
-			//targetTemp = targetTemp + 1;
 		end
-		else begin
+		if (A == 0) begin
 			if (i == 1) begin
 				i = 0;
 				Q0 = 0;
@@ -80,7 +118,7 @@ module final (input clk, A, B, C, D, E, output Z, output [7:0] H3, H2, H1, H0);
 				Q2 = 0;
 				Q3 = 0;
 			end
-			if (A == 1) begin
+			if (A == 0) begin
 				Q0 = Q0 + 1;
 				if (Q0 == 10) begin
 					Q0 = 0;
@@ -95,13 +133,13 @@ module final (input clk, A, B, C, D, E, output Z, output [7:0] H3, H2, H1, H0);
 							if (Q3 == 6) begin
 								Q3 = 0;
 								Q2 = 0;
+								end
 							end
 						end
 					end
 				end
 			end
 		end 
-	end
 	
 endmodule
 
