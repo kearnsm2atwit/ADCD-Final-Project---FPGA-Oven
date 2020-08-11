@@ -1,4 +1,4 @@
-module finalproject (input clk, A, B, C, D, E, output Z, output [7:0] H3, H2, H1, H0);
+module finalproject (input clk, A, B, C, D, E, output X, Z, output [7:0] H3, H2, H1, H0);
 	//A is for turning the oven on and off(display time or turn the oven on)
 	//B raises temp
 	//C lowers temp
@@ -16,9 +16,10 @@ module finalproject (input clk, A, B, C, D, E, output Z, output [7:0] H3, H2, H1
 	
 	
 	
-	reg [10:0] temp = 0;									// Need register for clock to display temp
-	reg [10:0] targetTemp = 357;
-	reg [16:0] bakeTime = 0;
+	
+	reg [10:0] targetTemp = 300;
+	reg [10:0] temp = 60;	
+	reg [15:0] bakeTime = 0;
 	
 	sevenseg s3(Q3, H3);
 	sevenseg s2(Q2, H2);
@@ -63,19 +64,50 @@ module finalproject (input clk, A, B, C, D, E, output Z, output [7:0] H3, H2, H1
 		// If oven is ON and need to set desired temp
 		if (A == 1 && B == 0 && C == 0) begin
 		
+			if (D == 1 && targetTemp < 900) begin
+				targetTemp = targetTemp - 10;
+			end
+			if (E == 1 && targetTemp > 60) begin
+				targetTemp = targetTemp + 10;
+			end
+		
 			Q0 = (targetTemp % 10);
 			Q1 = (targetTemp % 100) / 10;
 			Q2 = (targetTemp / 100);
+			Q3 = 0;
 		
 		end
 		
-		// If oven is ON and need to set desired time
+		// If oven is ON and user is selecting bake time
 		if (A == 1 && B == 1 && C == 0) begin
-		
+					
+			if (E == 1 && bakeTime < 3600) begin
+				bakeTime = bakeTime + 60;
+			end
+			if (D == 1 && bakeTime >= 60) begin
+				bakeTime = bakeTime - 60;
+			end
+			
+			// Displaying bake time
+			// MM:SS
+			// Max time would be 60:00
+			// 60 minutes is 3600 seconds
+			Q0 = (bakeTime % 60) % 10;
+			Q1 = (bakeTime % 60) / 10;
+			Q2 = (bakeTime / 60) % 10;
+			Q3 = (bakeTime / 600) % 10;
 		end
 		
-		// If oven is ON and need to be baking
+		// If oven is ON and preheating / baking
 		if (A == 1 && B == 1 && C == 1) begin
+			
+			
+			// As long as bake is ON, 
+			if (temp < targetTemp) begin
+				temp = temp + 2;
+			end
+			
+		
 		
 		end
 	
