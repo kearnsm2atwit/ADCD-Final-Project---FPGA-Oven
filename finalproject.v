@@ -98,17 +98,22 @@ module finalproject (input clk, A, B, C, D, E, output X, Z, output [7:0] H3, H2,
 			Q3 = (bakeTime / 600) % 10;
 		end
 		
-		// If oven is ON and preheating / baking
+		// If oven is ON and preheating
 		if (A == 1 && B == 1 && C == 1) begin
-			
-			
-			// As long as bake is ON, 
-			if (temp < targetTemp) begin
+			// Preheat stage, temp needs to be less than 5 degrees off of target temp
+			if (temp < targetTemp - 5) begin
 				temp = temp + 2;
 			end
 			
-		
-		
+			bakeTime = bakeTime - 1;
+			
+			
+			
+			Q0 = (bakeTime % 60) % 10;
+			Q1 = (bakeTime % 60) / 10;
+			Q2 = (bakeTime / 60) % 10;
+			Q3 = (bakeTime / 600) % 10;
+			
 		end
 	
 		// If oven is OFF
