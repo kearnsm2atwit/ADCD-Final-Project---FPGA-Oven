@@ -1,4 +1,4 @@
-module finalproject (input clk, A, B, C, D, E, output X, Z, output [7:0] H3, H2, H1, H0);
+module finalproject (input clk, A, B, C, D, E, output X, output Z, output [7:0] H3, H2, H1, H0);
 	//A is for turning the oven on and off(display time or turn the oven on)
 	//B raises temp
 	//C lowers temp
@@ -105,14 +105,24 @@ module finalproject (input clk, A, B, C, D, E, output X, Z, output [7:0] H3, H2,
 				temp = temp + 2;
 			end
 			
-			bakeTime = bakeTime - 1;
+			if (bakeTime > 0) begin
 			
-			
+				bakeTime = bakeTime - 1;
+				
+				if (E == 1 && bakeTime < 3600) begin
+					bakeTime = bakeTime + 60;
+				end
+				if (D == 1 && bakeTime >= 60) begin
+					bakeTime = bakeTime - 60;
+				end
+					
+			end
 			
 			Q0 = (bakeTime % 60) % 10;
 			Q1 = (bakeTime % 60) / 10;
 			Q2 = (bakeTime / 60) % 10;
 			Q3 = (bakeTime / 600) % 10;
+			
 			
 		end
 	
