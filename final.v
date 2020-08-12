@@ -1,4 +1,4 @@
-module final (input clk, A, B, C, D, E, F, output reg X, output reg Z, output [7:0] H3, H2, H1, H0);
+module final (input clk, A, B, C, D, E, F, output X, output Z, output [7:0] H3, H2, H1, H0);
 	//A is for turning the oven on and off(display time or turn the oven on)
 	//B raises temp
 	//C lowers temp
@@ -9,16 +9,20 @@ module final (input clk, A, B, C, D, E, F, output reg X, output reg Z, output [7
 	parameter MAX_COUNT = 25000000;					// 1 second is 50 million clock cycles @ 50 MHz
 	reg [27:0] count = 0;								// Store count value
 	reg new_clk = 0;										// Clock to be used
-	
+	reg tempX, tempZ = 0;
+	assign X = tempX;
+	assign Z = tempZ;
 	
 	reg [3:0] Q3, Q2, Q1, Q0 = 0;
-	reg [3:0] D3, D2, D1, D0 = 0;	
+	reg [3:0] D3, D2, D1, D0 = 0;
 	
-	reg [10:0] targetTemp = 100;
-	reg [10:0] temp = 60;	
+	
+	
+	
+	reg [10:0] targetTemp = 300;
+	reg [10:0] temp = 65;	
 	reg [15:0] bakeTime = 0;
-	reg times = 0;
-	reg timess = 0;
+	reg [4:0] loopCount = 0;
 	
 	sevenseg s3(Q3, H3);
 	sevenseg s2(Q2, H2);
@@ -39,7 +43,6 @@ module final (input clk, A, B, C, D, E, F, output reg X, output reg Z, output [7
 	// Always block to control FSM based on clock cycle
 
 	always @ (posedge new_clk) begin
-		
 	
 		D0 = D0 + 1;
 		if (D0 == 10) begin
@@ -61,9 +64,27 @@ module final (input clk, A, B, C, D, E, F, output reg X, output reg Z, output [7
 		end
 			
 			
+			
 		// If oven is ON and need to set desired temp
-		if (A == 1 && B == 0 && C == 0 & F == 0) begin
+		if (A == 1 && B == 0 && C == 0) begin
 		
+			
+			if (temp >= (targetTemp - 2) && (temp <= targetTemp + 2)) begin
+				tempX = 1;
+			end
+			else begin
+				tempX = 0;
+			end
+			
+		
+			if (temp >= 67) begin
+				loopCount = loopCount + 1;
+				if (loopCount > 1) begin
+					temp = temp - 1;
+					loopCount = 0;
+				end
+			end
+			
 			if (D == 1 && targetTemp < 900) begin
 				targetTemp = targetTemp - 10;
 			end
@@ -75,18 +96,48 @@ module final (input clk, A, B, C, D, E, F, output reg X, output reg Z, output [7
 			Q1 = (targetTemp % 100) / 10;
 			Q2 = (targetTemp / 100);
 			Q3 = 0;
+
+			if (F == 1) begin
+				Q0 = (temp % 10) % 10;
+				Q1 = (temp % 100) / 10;
+				Q2 = (temp / 100);
+				Q3 = 0;
+			end
 		
 		end
 		
-		
-		// If oven is ON and user is selecting bake time
+		// If oven is ON and is preheating
 		if (A == 1 && B == 1 && C == 0) begin
-					
+			
+			if (temp >= (targetTemp - 2) && (temp <= targetTemp + 2)) begin
+				tempX = 1;
+			end
+			else begin
+				tempX = 0;
+			end
+			
+			// Preheat stage, temp needs to be less than 5 degrees off of target temp
+			if (temp <= (targetTemp)) begin
+				temp = temp + 2;
+			end
+			else begin
+				loopCount = loopCount + 1;
+				if (loopCount > 1) begin
+					temp = temp - 1;
+					loopCount = 0;
+				end
+			end
+			
 			if (E == 1 && bakeTime < 3600) begin
 				bakeTime = bakeTime + 60;
 			end
-			if (D == 1 && bakeTime >= 60) begin
-				bakeTime = bakeTime - 60;
+			if (D == 1) begin
+				if (bakeTime >= 60) begin
+					bakeTime = bakeTime - 60;
+				end
+				else begin
+					bakeTime = 0;
+				end
 			end
 			
 			// Displaying bake time
@@ -97,64 +148,107 @@ module final (input clk, A, B, C, D, E, F, output reg X, output reg Z, output [7
 			Q1 = (bakeTime % 60) / 10;
 			Q2 = (bakeTime / 60) % 10;
 			Q3 = (bakeTime / 600) % 10;
+		
+			if (F == 1) begin
+				Q0 = (temp % 10) % 10;
+				Q1 = (temp % 100) / 10;
+				Q2 = (temp / 100);
+				Q3 = 0;
+			end
+			tempZ = 0;
+		
 		end
 		
-		// If oven is ON and preheating
+		// If oven is ON and timer is going
 		if (A == 1 && B == 1 && C == 1) begin
+			
+			if (temp >= (targetTemp - 2) && (temp <= targetTemp + 2)) begin
+				tempX = 1;
+			end
+			else begin
+				tempX = 0;
+			end
+			
 			// Preheat stage, temp needs to be less than 5 degrees off of target temp
-			if (temp < targetTemp) begin
+			if (temp <= (targetTemp)) begin
 				temp = temp + 2;
-				X = 0;
-				if  (timess > 1) begin
-					X = 1;
-				end
-			end 
-			if (temp >= targetTemp)begin
-				times = times + 1;
-				if (times > 1) begin
+			end
+			else begin
+				loopCount = loopCount + 1;
+				if (loopCount > 1) begin
 					temp = temp - 1;
-					times = 0;
-					timess = timess + 1;
-					X = 1;
+					loopCount = 0;
 				end
 			end
 			
-			if (bakeTime > 0) begin
+			if (bakeTime >= 0) begin
 			
-				bakeTime = bakeTime - 1;
+				if (bakeTime > 0) begin
+					bakeTime = bakeTime - 1;
+				end
+				else begin
+					// Baking timer is over, output to LED
+				end
 				
 				if (E == 1 && bakeTime < 3600) begin
 					bakeTime = bakeTime + 60;
 				end
-				if (D == 1 && bakeTime >= 60) begin
-					bakeTime = bakeTime - 60;
+				if (D == 1) begin
+					if (bakeTime >= 60) begin
+						bakeTime = bakeTime - 60;
+					end
+					else begin
+						bakeTime = 0;
+					end
 				end
-					
+				
+				if (bakeTime == 0) begin
+					tempZ = 1;
+				end
+				else begin
+					tempZ = 0;
+				end
+				
 			end
+			
+			Q0 = (bakeTime % 60) % 10;
+			Q1 = (bakeTime % 60) / 10;
+			Q2 = (bakeTime / 60) % 10;
+			Q3 = (bakeTime / 600) % 10;
 			
 			if (F == 1) begin
 				Q0 = (temp % 10) % 10;
 				Q1 = (temp % 100) / 10;
 				Q2 = (temp / 100);
 				Q3 = 0;
-			end	
-			
-			if (F == 0) begin
-				Q0 = (bakeTime % 60) % 10;
-				Q1 = (bakeTime % 60) / 10;
-				Q2 = (bakeTime / 60) % 10;
-				Q3 = (bakeTime / 600) % 10;
 			end
-			
-			
 		end
-	
+		
 		// If oven is OFF
 		if (A == 0) begin
+		
+			if (temp >= 67) begin
+				loopCount = loopCount + 1;
+				if (loopCount > 1) begin
+					temp = temp - 1;
+					loopCount = 0;
+				end
+			end
+	
 			Q0 = D0;
 			Q1 = D1;
 			Q2 = D2;
 			Q3 = D3;
+			if (F == 1) begin
+				Q0 = (temp % 10) % 10;
+				Q1 = (temp % 100) / 10;
+				Q2 = (temp / 100);
+				Q3 = 0;
+			end
+			tempZ = 0;
+			tempX = 0;
 		end
+		
+	
 	end
 endmodule
