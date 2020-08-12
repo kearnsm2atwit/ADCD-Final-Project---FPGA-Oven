@@ -9,7 +9,9 @@ module finalproject (input clk, A, B, C, D, E, output X, output Z, output [7:0] 
 	parameter MAX_COUNT = 25000000;					// 1 second is 50 million clock cycles @ 50 MHz
 	reg [27:0] count = 0;								// Store count value
 	reg new_clk = 0;										// Clock to be used
-	
+	reg tempX, tempZ = 0;
+	assign X = tempX;
+	assign Z = tempZ;
 	
 	reg [3:0] Q3, Q2, Q1, Q0 = 0;
 	reg [3:0] D3, D2, D1, D0 = 0;
@@ -59,7 +61,6 @@ module finalproject (input clk, A, B, C, D, E, output X, output Z, output [7:0] 
 				end
 			end
 		end
-			
 			
 		// If oven is ON and need to set desired temp
 		if (A == 1 && B == 0 && C == 0) begin
@@ -132,13 +133,20 @@ module finalproject (input clk, A, B, C, D, E, output X, output Z, output [7:0] 
 						bakeTime = 0;
 					end
 				end
+				
+				if (bakeTime == 0) begin
+					tempZ = 1;
+				end
+				else begin
+					tempZ = 0;
+				end
+				
 			end
 			
 			Q0 = (bakeTime % 60) % 10;
 			Q1 = (bakeTime % 60) / 10;
 			Q2 = (bakeTime / 60) % 10;
 			Q3 = (bakeTime / 600) % 10;
-			
 			
 		end
 	
