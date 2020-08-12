@@ -1,4 +1,4 @@
-module finalproject (input clk, A, B, C, D, E, output X, output Z, output [7:0] H3, H2, H1, H0);
+module finalproject (input clk, A, B, C, D, E, F, output X, output Z, output [7:0] H3, H2, H1, H0);
 	//A is for turning the oven on and off(display time or turn the oven on)
 	//B raises temp
 	//C lowers temp
@@ -20,7 +20,7 @@ module finalproject (input clk, A, B, C, D, E, output X, output Z, output [7:0] 
 	
 	
 	reg [10:0] targetTemp = 300;
-	reg [10:0] temp = 60;	
+	reg [10:0] temp = 65;	
 	reg [15:0] bakeTime = 0;
 	
 	sevenseg s3(Q3, H3);
@@ -62,9 +62,24 @@ module finalproject (input clk, A, B, C, D, E, output X, output Z, output [7:0] 
 			end
 		end
 			
+			
+			
 		// If oven is ON and need to set desired temp
 		if (A == 1 && B == 0 && C == 0) begin
 		
+			
+			if (temp >= (targetTemp - 2) && (temp <= targetTemp + 2)) begin
+				tempX = 1;
+			end
+			else begin
+				tempX = 0;
+			end
+			
+		
+			if (temp >= 67) begin
+				temp = temp - 2;
+			end
+			
 			if (D == 1 && targetTemp < 900) begin
 				targetTemp = targetTemp - 10;
 			end
@@ -76,12 +91,33 @@ module finalproject (input clk, A, B, C, D, E, output X, output Z, output [7:0] 
 			Q1 = (targetTemp % 100) / 10;
 			Q2 = (targetTemp / 100);
 			Q3 = 0;
+
+			if (F == 1) begin
+				Q0 = (temp % 10) % 10;
+				Q1 = (temp % 100) / 10;
+				Q2 = (temp / 100);
+				Q3 = 0;
+			end
 		
 		end
 		
-		// If oven is ON and user is selecting bake time
+		// If oven is ON and is preheating
 		if (A == 1 && B == 1 && C == 0) begin
 			
+			if (temp >= (targetTemp - 2) && (temp <= targetTemp + 2)) begin
+				tempX = 1;
+			end
+			else begin
+				tempX = 0;
+			end
+			
+			// Preheat stage, temp needs to be less than 5 degrees off of target temp
+			if (temp <= (targetTemp)) begin
+				temp = temp + 2;
+			end
+			else begin
+				temp = temp - 2;
+			end
 			
 			if (E == 1 && bakeTime < 3600) begin
 				bakeTime = bakeTime + 60;
@@ -103,14 +139,33 @@ module finalproject (input clk, A, B, C, D, E, output X, output Z, output [7:0] 
 			Q1 = (bakeTime % 60) / 10;
 			Q2 = (bakeTime / 60) % 10;
 			Q3 = (bakeTime / 600) % 10;
+		
+			if (F == 1) begin
+				Q0 = (temp % 10) % 10;
+				Q1 = (temp % 100) / 10;
+				Q2 = (temp / 100);
+				Q3 = 0;
+			end
+			tempZ = 0;
+		
 		end
 		
-		// If oven is ON and preheating
+		// If oven is ON and timer is going
 		if (A == 1 && B == 1 && C == 1) begin
 			
+			if (temp >= (targetTemp - 2) && (temp <= targetTemp + 2)) begin
+				tempX = 1;
+			end
+			else begin
+				tempX = 0;
+			end
+			
 			// Preheat stage, temp needs to be less than 5 degrees off of target temp
-			if (temp < targetTemp - 5) begin
+			if (temp <= (targetTemp)) begin
 				temp = temp + 2;
+			end
+			else begin
+				temp = temp - 2;
 			end
 			
 			if (bakeTime >= 0) begin
@@ -148,14 +203,35 @@ module finalproject (input clk, A, B, C, D, E, output X, output Z, output [7:0] 
 			Q2 = (bakeTime / 60) % 10;
 			Q3 = (bakeTime / 600) % 10;
 			
+			if (F == 1) begin
+				Q0 = (temp % 10) % 10;
+				Q1 = (temp % 100) / 10;
+				Q2 = (temp / 100);
+				Q3 = 0;
+			end
 		end
-	
+		
 		// If oven is OFF
 		if (A == 0) begin
+		
+			if (temp >= 67) begin
+				temp = temp - 2;
+			end
+	
 			Q0 = D0;
 			Q1 = D1;
 			Q2 = D2;
 			Q3 = D3;
+			if (F == 1) begin
+				Q0 = (temp % 10) % 10;
+				Q1 = (temp % 100) / 10;
+				Q2 = (temp / 100);
+				Q3 = 0;
+			end
+			tempZ = 0;
+			tempX = 0;
 		end
+		
+	
 	end
 endmodule
