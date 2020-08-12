@@ -80,12 +80,18 @@ module finalproject (input clk, A, B, C, D, E, output X, output Z, output [7:0] 
 		
 		// If oven is ON and user is selecting bake time
 		if (A == 1 && B == 1 && C == 0) begin
-					
+			
+			
 			if (E == 1 && bakeTime < 3600) begin
 				bakeTime = bakeTime + 60;
 			end
-			if (D == 1 && bakeTime >= 60) begin
-				bakeTime = bakeTime - 60;
+			if (D == 1) begin
+				if (bakeTime >= 60) begin
+					bakeTime = bakeTime - 60;
+				end
+				else begin
+					bakeTime = 0;
+				end
 			end
 			
 			// Displaying bake time
@@ -100,22 +106,32 @@ module finalproject (input clk, A, B, C, D, E, output X, output Z, output [7:0] 
 		
 		// If oven is ON and preheating
 		if (A == 1 && B == 1 && C == 1) begin
+			
 			// Preheat stage, temp needs to be less than 5 degrees off of target temp
 			if (temp < targetTemp - 5) begin
 				temp = temp + 2;
 			end
 			
-			if (bakeTime > 0) begin
+			if (bakeTime >= 0) begin
 			
-				bakeTime = bakeTime - 1;
+				if (bakeTime > 0) begin
+					bakeTime = bakeTime - 1;
+				end
+				else begin
+					// Baking timer is over, output to LED
+				end
 				
 				if (E == 1 && bakeTime < 3600) begin
 					bakeTime = bakeTime + 60;
 				end
-				if (D == 1 && bakeTime >= 60) begin
-					bakeTime = bakeTime - 60;
+				if (D == 1) begin
+					if (bakeTime >= 60) begin
+						bakeTime = bakeTime - 60;
+					end
+					else begin
+						bakeTime = 0;
+					end
 				end
-					
 			end
 			
 			Q0 = (bakeTime % 60) % 10;
